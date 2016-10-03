@@ -22,5 +22,5 @@ ENDIF(Boost_FOUND)
 
 SET(USED_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} ${Boost_REGEX_LIBRARY})
 
-ADD_EXECUTABLE(xcrypto main.cpp)
+ADD_EXECUTABLE(xcrypto crypto.cpp main.cpp)
 TARGET_LINK_LIBRARIES(xcrypto ssl crypto ${USED_LIBS})
