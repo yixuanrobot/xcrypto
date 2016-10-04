@@ -102,8 +102,6 @@ void crypto::base64_decrypt(const char* inbuf, char* outbuf,
 {
     BIO * b64 = NULL;
     BIO * bmem = NULL;
-    char * buffer = (char *)malloc(length);
-    memset(buffer, 0, length);
 
     b64 = BIO_new(BIO_f_base64());
     if(!with_new_line) {
@@ -114,6 +112,60 @@ void crypto::base64_decrypt(const char* inbuf, char* outbuf,
     BIO_read(bmem, outbuf, length);
 
     BIO_free_all(bmem);
+}
+
+std::string crypto::char2hexstring(const unsigned char* str, size_t n)
+{
+    std::ostringstream oss;
+    oss << std::hex;
+    oss << std::setfill('0');
+    oss << std::uppercase;
+    for (size_t i = 0; i < n; i++)
+    {
+        unsigned char c = str[i];
+        oss  << std::setw(2) << (unsigned int)c;
+    }
+    return oss.str();
+}
+
+//char* out输出结果，n返回数据的个数
+size_t crypto::hexstring2char(const std::string& str, unsigned char* out)
+{
+    size_t n = 0;
+    size_t temp;
+    for (size_t i = 0; i < str.length(); i+=2)
+    {
+        string cstr = str.substr(i, 2);
+        std::istringstream iss(cstr);
+        iss >> std::hex;
+        iss >> temp;
+        out[n++] = temp;
+    }
+    return n;
+}
+
+void crypto::xencrypt(unsigned char* inbuf, size_t length, string* outbuf,
+                      unsigned char* key, int keylen, int mode)
+{
+    unsigned char randkey[16] = { 0x4F, 0x12, 0x24, 0x3B, 0x28, 0x1C, 0xFB, 0x45, 0xE3, 0x56, 0x1A, 0xAC, 0x40, 0x3D, 0xD3, 0x12 };
+    for (size_t i = 0; i < length; i += 2)
+        inbuf[i] = inbuf[i] ^ randkey[i % 16];
+    crypto::blowfish_encrypt(inbuf, inbuf, length, key, keylen, mode, BF_ENCRYPT);
+    string inbufstr = crypto::char2hexstring(inbuf, length);
+    crypto::base64_encrypt(inbufstr, outbuf);
+}
+
+void crypto::xdecrypt(string& inbuf, unsigned char* outbuf,
+                      unsigned char* key, int keylen, int mode)
+{
+    unsigned char randkey[16] = { 0x4F, 0x12, 0x24, 0x3B, 0x28, 0x1C, 0xFB, 0x45, 0xE3, 0x56, 0x1A, 0xAC, 0x40, 0x3D, 0xD3, 0x12 };
+    string inbufstr;
+    size_t length = 0;
+    crypto::base64_decrypt(inbuf, &inbufstr);
+    length = hexstring2char(inbufstr, outbuf);
+    crypto::blowfish_encrypt(outbuf, outbuf, length, key, keylen, mode, BF_DECRYPT);
+    for (size_t i = 0; i < length; i += 2)
+        outbuf[i] = outbuf[i] ^ randkey[i % 16];
 }
 
 }

@@ -13,6 +13,7 @@
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/binary_from_base64.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
+#include <boost/algorithm/hex.hpp>
 
 using namespace std;
 using namespace boost::archive::iterators;
@@ -44,6 +45,16 @@ public:
 
     static void base64_decrypt(const char* inbuf, char* outbuf,
                                size_t length, bool with_new_line);
+
+    static void xencrypt(unsigned char* inbuf, size_t length, string* outbuf,
+                         unsigned char* key, int keylen, int mode);
+
+    static void xdecrypt(string& inbuf, unsigned char* outbuf,
+                         unsigned char* key, int keylen, int mode);
+
+    static std::string char2hexstring(const unsigned char* str, size_t n);
+
+    static size_t hexstring2char(const std::string& str, unsigned char* out);
 };
 }
 

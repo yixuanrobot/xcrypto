@@ -1,50 +1,30 @@
 #include <iostream>
-#include <stdio.h>
 #include "crypto.hpp"
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
-//    if(argc < 3)
-//    {
-//        printf("Usage: ./xcrypto test 1\n");
-//        printf("1 openssl->blowfish\n");
-//        printf("2 boost->base64\n");
-//        printf("3 openssl->base64\n");
-//        return 0;
-//    }
-
     /*
      test blowfish
     */
     unsigned char key[8] = {1,2,3,4,5,6,7,8};
-    unsigned char intbuf[10] = {0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39};
-    unsigned char outbuf[10];
-    unsigned char reintbuf[10];
+    unsigned char inbuf[20] = {0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39};
+    unsigned char outbuf[20] = {0};
+    unsigned char reinbuf[20];
 
-    printf("origin: \n");
-    for (size_t i=0;i<10;i++)
-    {
-        printf("%02X ", intbuf[i]);
-    }
-    printf("\n");
+    cout << "origin:" << endl;
+    cout << xcrypto::crypto::char2hexstring(inbuf, 10) << endl;
 
-    printf("encrypt: \n");
-    xcrypto::crypto::blowfish_encrypt(intbuf, outbuf, 10, key, 8, xcrypto::BF_CFB, BF_ENCRYPT);
-    for (size_t i=0;i<10;i++)
-    {
-        printf("%02X ", outbuf[i]);
-    }
-    printf("\n");
+    xcrypto::crypto::blowfish_encrypt(inbuf, outbuf, 10, key, 8, xcrypto::BF_CFB, BF_ENCRYPT);
 
-    printf("decrypt: \n");
-    xcrypto::crypto::blowfish_encrypt(outbuf, reintbuf, 10, key, 8, xcrypto::BF_CFB, BF_DECRYPT);
-    for (size_t i=0;i<10;i++)
-    {
-        printf("%02X ", reintbuf[i]);
-    }
-    printf("\n");
+    cout<< "encrypt:" << endl;
+    cout<<xcrypto::crypto::char2hexstring(outbuf, 10) << endl;
+
+    xcrypto::crypto::blowfish_encrypt(outbuf, reinbuf, 10, key, 8, xcrypto::BF_CFB, BF_DECRYPT);
+
+    cout<< "decrypt:" << endl;
+    cout<<xcrypto::crypto::char2hexstring(reinbuf, 10) << endl;
 
     /*
      test boost::base64
@@ -52,13 +32,13 @@ int main(int argc, char *argv[])
     string input_str("https://github.com/yixuanrobot/xcrypto.git ~!@#$%\r\n\t0123456789");
     string base64_str, output_str;
 
-    cout<<"origin text: \n"<<input_str<<endl;
+    cout<<"origin text:"<< endl << input_str << endl;
 
     xcrypto::crypto::base64_encrypt(input_str, &base64_str);
-    cout<<"encode: \n"<<base64_str<<endl;
+    cout<<"encode:"<< endl << base64_str << endl;
 
     xcrypto::crypto::base64_decrypt(base64_str, &output_str);
-    cout<<"decode: \n"<<output_str<<endl;
+    cout<<"decode:"<< endl << output_str << endl;
 
     /*
      test openssl->base64
@@ -78,6 +58,20 @@ int main(int argc, char *argv[])
     string dec_input = (char*)enc_output;
     xcrypto::crypto::base64_decrypt(dec_input.c_str(), (char*)dec_output, dec_input.length(), false);
     cout << "Base64 Decoded:" << endl << "~" << dec_output << "~" << endl << endl;
+
+    /*
+      test xcrypt
+    */
+    unsigned char xkey[8] = {1,2,3,4,5,6,7,8};
+    unsigned char xinbuf[18] = {0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x38,0x38,0x38,0x38,0x38,0x38,0x38,0x38};
+    string xoutbuf;
+    unsigned char xreinbuf[18] = {0};
+
+    cout << "origin: " << xcrypto::crypto::char2hexstring(xinbuf, 18) << endl;
+    xcrypto::crypto::xencrypt(xinbuf, 18, &xoutbuf, xkey, 8, xcrypto::BF_CFB);
+    cout<< "xencrypt:" << xoutbuf << endl;
+    xcrypto::crypto::xdecrypt(xoutbuf, xreinbuf, xkey, 8, xcrypto::BF_CFB);
+    cout<< "xdecrypt:" << xcrypto::crypto::char2hexstring(xreinbuf,18) << endl;
 
     return 0;
 }
